@@ -11,18 +11,14 @@ def remove_small_components(data, spacing, min_radius=1.5):
     :param min_radius: Minimum radius of connected components to keep (in millimeters)
     :return: Cleaned 3D image data with small components removed
     """
-    # Label connected components
     labeled_array, num_features = label(data)
     
-    # Calculate the volume of each connected component
     component_sizes = np.bincount(labeled_array.ravel())
     voxel_volume = spacing[0] * spacing[1] * spacing[2]
     component_volumes = component_sizes * voxel_volume
     
-    # Calculate the minimum volume based on the minimum radius
     min_volume = (4/3) * np.pi * (min_radius ** 3)
-    
-    # Create a mask to remove small components
+
     mask = component_volumes >= min_volume
     mask[0] = 0  # Ensure the background is not included
     cleaned_data = mask[labeled_array]
@@ -34,11 +30,8 @@ def process_nifti_file(file_path, min_radius=1.5):
         img = nib.load(file_path)
         data = img.get_fdata()
         spacing = img.header.get_zooms()
-
-        # Remove small connected components
         cleaned_data = remove_small_components(data, spacing, min_radius)
 
-        # Check if the processed image is all zero
         if np.any(cleaned_data > 0):
             return cleaned_data, img.affine, img.header
         else:
@@ -96,7 +89,7 @@ def main():
                         processed_data, affine, header = process_nifti_file(tumor_file_path)
 
                         if processed_data is not None:
-                            output_file_path = os.path.join(root, file.replace('.nii.gz', '_new77777.nii.gz'))
+                            output_file_path = os.path.join(root, file.replace('.nii.gz', '_new.nii.gz'))
                             new_img = nib.Nifti1Image(processed_data, affine, header)
                             nib.save(new_img, output_file_path)
                             print(f"Processed and saved: {output_file_path}")
